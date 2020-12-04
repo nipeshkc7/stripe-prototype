@@ -5,14 +5,20 @@ const express = require('express');
 const app = express();
 const nunjucks = require('nunjucks');
 
-// Set your secret key. Remember to switch to your live secret key in production!
-// See your keys here: https://dashboard.stripe.com/account/apikeys
-const stripe = require('stripe')('sk_test_51Hg1ivJ0u6JgDCHqHJ2mR1L8jm9Vsl9ZtbMxrUQ6KLPCf7DhBGKWWYiHRi9kjOf7vvw00uN27WeSDHaz5KjMouGV00NFVsLd5H');
 
 nunjucks.configure('./html', {
     autoescape: true,
     express: app
 });
+
+
+// Set your secret key. Remember to switch to your live secret key in production!
+// See your keys here: https://dashboard.stripe.com/account/apikeys
+STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || 'sk_test_51Hg1ivJ0u6JgDCHqHJ2mR1L8jm9Vsl9ZtbMxrUQ6KLPCf7DhBGKWWYiHRi9kjOf7vvw00uN27WeSDHaz5KjMouGV00NFVsLd5H';
+SUCCESS_URL = process.env.SUCCESS_URL || 'http://localhost:8080/paymentSuccess';
+FAILURE_URL = process.env.FAILURE_URL || 'http://localhost:8080/paymentFailure';
+
+const stripe = require('stripe')(STRIPE_SECRET_KEY);
 
 app.set("view engine", "njk");
 
@@ -21,7 +27,15 @@ app.get('/checkout', (req, res) => {
 });
 
 app.get('/', (req, res) => {
+  res.end('Alive');
+});
 
+app.get('/paymentSuccess', (req, res) => {
+  res.end('payment successful');
+});
+
+app.get('/paymentFailure', (req, res) => {
+  res.end('payment failure');
 });
 
 app.post('/create-checkout-session', async (req, res) => {
@@ -40,11 +54,11 @@ app.post('/create-checkout-session', async (req, res) => {
       },
     ],
     mode: 'payment',
-    success_url: 'https://yoursite.com/success.html',
-    cancel_url: 'https://example.com/cancel',
+    success_url: 'http://localhost:4242/paymentSuccess',
+    cancel_url: 'http://localhost:4242/paymentFailure',
   });
 
   res.json({ id: session.id });
 });
 
-app.listen(4242, () => console.log(`Listening on port ${4242}!`));
+app.listen(8080, () => console.log(`Listening on port ${8080}!`));
